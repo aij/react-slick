@@ -8,12 +8,20 @@ import assign from 'object-assign';
 
 var helpers = {
   initialize: function (props) {
+    this.update(
+      props,
+      this.autoPlay // once we're set up, trigger the initial autoplay.
+    );
+  },
+  update: function (props, cb) {
     var slideCount = React.Children.count(props.children);
     var listWidth = this.getWidth(ReactDOM.findDOMNode(this.refs.list));
     var trackWidth = this.getWidth(ReactDOM.findDOMNode(this.refs.track));
     var slideWidth = this.getWidth(ReactDOM.findDOMNode(this))/props.slidesToShow;
 
-    var currentSlide = props.rtl ? slideCount - 1 - props.initialSlide : props.initialSlide;
+    var currentSlide =
+      this.state.currentSlide !== undefined ? this.state.currentSlide
+      : props.rtl ? slideCount - 1 - props.initialSlide : props.initialSlide;
 
     this.setState({
       slideCount: slideCount,
@@ -31,33 +39,7 @@ var helpers = {
       var trackStyle = getTrackCSS(assign({left: targetLeft}, props, this.state));
 
       this.setState({trackStyle: trackStyle});
-
-      this.autoPlay(); // once we're set up, trigger the initial autoplay.
-    });
-  },
-  update: function (props) {
-    // This method has mostly same code as initialize method.
-    // Refactor it
-    var slideCount = React.Children.count(props.children);
-    var listWidth = this.getWidth(ReactDOM.findDOMNode(this.refs.list));
-    var trackWidth = this.getWidth(ReactDOM.findDOMNode(this.refs.track));
-    var slideWidth = this.getWidth(ReactDOM.findDOMNode(this))/props.slidesToShow;
-
-    this.setState({
-      slideCount: slideCount,
-      slideWidth: slideWidth,
-      listWidth: listWidth,
-      trackWidth: trackWidth
-    }, function () {
-
-      var targetLeft = getTrackLeft(assign({
-        slideIndex: this.state.currentSlide,
-        trackRef: this.refs.track
-      }, props, this.state));
-      // getCSS function needs previously set state
-      var trackStyle = getTrackCSS(assign({left: targetLeft}, props, this.state));
-
-      this.setState({trackStyle: trackStyle});
+      cb && cb();
     });
   },
   getWidth: function getWidth(elem) {

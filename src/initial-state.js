@@ -4,7 +4,7 @@ var initialState = {
     autoPlayTimer: null,
     currentDirection: 0,
     currentLeft: null,
-    currentSlide: 0,
+    currentSlide: undefined,
     direction: 1,
     // listWidth: null,
     // listHeight: null,
