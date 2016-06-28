@@ -23,6 +23,7 @@ var helpers = {
       this.state.currentSlide !== undefined ? this.state.currentSlide
       : props.rtl ? slideCount - 1 - props.initialSlide : props.initialSlide;
 
+    this.lazyUpdate(currentSlide, props);
     this.setState({
       slideCount: slideCount,
       slideWidth: slideWidth,
@@ -41,6 +42,22 @@ var helpers = {
       this.setState({trackStyle: trackStyle});
       cb && cb();
     });
+  },
+  lazyUpdate: function(currentSlide, props) {
+    if (props.lazyLoad) {
+      const lazyLoadedList = this.state.lazyLoadedList;
+      const slidesToLoad = [];
+      // TODO: Support infinite/centerMode.
+      const end = Math.min(React.Children.count(props.children), currentSlide + props.slidesToShow);
+      for (var i = currentSlide; i < end; i++) {
+	if (lazyLoadedList.indexOf(i) < 0) {
+          slidesToLoad.push(i);
+	}
+      }
+      if (slidesToLoad.length) {
+	this.setState({lazyLoadedList: lazyLoadedList.concat(slidesToLoad)});
+      }
+    }
   },
   getWidth: function getWidth(elem) {
     return elem.getBoundingClientRect().width || elem.offsetWidth;
@@ -77,11 +94,7 @@ var helpers = {
         targetSlide = index;
       }
 
-      if (this.props.lazyLoad && this.state.lazyLoadedList.indexOf(targetSlide) < 0) {
-        this.setState({
-          lazyLoadedList: this.state.lazyLoadedList.concat(targetSlide)
-        });
-      }
+      this.lazyUpdate(targetSlide, this.props);
 
       callback = () => {
         this.setState({
@@ -147,21 +160,7 @@ var helpers = {
       this.props.beforeChange(this.state.currentSlide, currentSlide);
     }
 
-    if (this.props.lazyLoad) {
-      var loaded = true;
-      var slidesToLoad = [];
-      for (var i = targetSlide; i < targetSlide + this.props.slidesToShow; i++ ) {
-        loaded = loaded && (this.state.lazyLoadedList.indexOf(i) >= 0);
-        if (!loaded) {
-          slidesToLoad.push(i);
-        }
-      }
-      if (!loaded) {
-        this.setState({
-          lazyLoadedList: this.state.lazyLoadedList.concat(slidesToLoad)
-        });
-      }
-    }
+    this.lazyUpdate(targetSlide, this.props);
 
     // Slide Transition happens here.
     // animated transition happens to target Slide and

@@ -62,10 +62,13 @@ var renderSlides = (spec) => {
   var postCloneSlides = [];
   var count = React.Children.count(spec.children);
   var child;
+  var lazyLoadMax = Math.max(0, ...spec.lazyLoadedList);
 
   React.Children.forEach(spec.children, (elem, index) => {
     if (!spec.lazyLoad | (spec.lazyLoad && spec.lazyLoadedList.indexOf(index) >= 0)) {
       child = elem;
+    } else if (index <= lazyLoadMax) {
+	child = <div />; // Render empty divs to fill in space.
     } else {
       return;
     }
